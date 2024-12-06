@@ -56,7 +56,7 @@ public class CalculatorService {
         CreditDto creditDto = new CreditDto();
         for (Predicate<ScoringDataDto> condition : conditionsForRefusal) {
             if (condition.test(input)) {
-                log.info("Refusal condition met for ScoringDataDto: {}", input);
+                log.warn("Refusal condition met for ScoringDataDto: {}", input);
                 return null;
             }
             creditDto.setAmount(calculateAmount(input));

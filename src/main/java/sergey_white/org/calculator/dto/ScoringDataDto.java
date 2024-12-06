@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Data
 public class ScoringDataDto {
     @NotNull
-    @DecimalMin(value = "100000")
+    @DecimalMin(value = "10000")
     private BigDecimal amount;
     @NotNull
     @Min(value = 6)
