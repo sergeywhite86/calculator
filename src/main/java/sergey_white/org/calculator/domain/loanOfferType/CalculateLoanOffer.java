@@ -15,9 +15,9 @@ public interface CalculateLoanOffer {
 
     BigDecimal calculateTotalAmount(LoanStatementRequestDto input);
 
-    default BigDecimal calculateMonthlyPayment(LoanStatementRequestDto input) {
+    default BigDecimal calculateMonthlyPayment(LoanStatementRequestDto input,BigDecimal totalAmount) {
         BigDecimal monthlyRate = calculateRate().divide(new BigDecimal("1200"), 10, RoundingMode.HALF_UP);
-        BigDecimal numerator = input.getAmount().multiply(monthlyRate).multiply(BigDecimal.ONE.add(monthlyRate).pow(input.getTerm()));
+        BigDecimal numerator = totalAmount.multiply(monthlyRate).multiply(BigDecimal.ONE.add(monthlyRate).pow(input.getTerm()));
         BigDecimal denominator = BigDecimal.ONE.add(monthlyRate).pow(input.getTerm()).subtract(BigDecimal.ONE);
         return numerator.divide(denominator, 10, RoundingMode.HALF_UP).setScale(2, RoundingMode.HALF_UP);
     }

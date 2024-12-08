@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,8 +37,9 @@ public class CalculatorController {
             @ApiResponse(responseCode = "400", description = "Неверный ввод")
     })
     @PostMapping("/offers")
-    public List<LoanOfferDto> calculateLoanOffers(@RequestBody LoanStatementRequestDto req) {
-        return service.getLoanOffers(req);
+    public ResponseEntity<List<LoanOfferDto>> calculateLoanOffers(@RequestBody LoanStatementRequestDto req) {
+        List<LoanOfferDto> loanOfferDto = service.getLoanOffers(req);
+        return ResponseEntity.ok(loanOfferDto);
     }
 
     @Operation(summary = "Расчет кредита", description = """
@@ -50,7 +52,8 @@ public class CalculatorController {
             @ApiResponse(responseCode = "400", description = "Неверный ввод")
     })
     @PostMapping("/calc")
-    public CreditDto calculateCredit(@RequestBody ScoringDataDto req) {
-        return service.calculateCredit(req);
+    public ResponseEntity<CreditDto> calculateCredit(@RequestBody ScoringDataDto req) {
+        CreditDto creditDto = service.calculateCredit(req);
+        return ResponseEntity.ok(creditDto);
     }
 }

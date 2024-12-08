@@ -24,7 +24,7 @@ public class LoanOfferNotInsuranceAndWithSalaryClient implements CalculateLoanOf
         loanOfferDto.setRequestedAmount(input.getAmount());
         loanOfferDto.setTotalAmount(calculateTotalAmount(input));
         loanOfferDto.setTerm(input.getTerm());
-        loanOfferDto.setMonthlyPayment(calculateMonthlyPayment(input));
+        loanOfferDto.setMonthlyPayment(calculateMonthlyPayment(input,calculateTotalAmount(input)));
         loanOfferDto.setRate(calculateRate());
         loanOfferDto.setIsInsuranceEnabled(false);
         loanOfferDto.setIsSalaryClient(true);

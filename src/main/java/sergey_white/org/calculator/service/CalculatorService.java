@@ -11,12 +11,16 @@ import sergey_white.org.calculator.enums.Gender;
 import sergey_white.org.calculator.enums.MaritalStatus;
 import sergey_white.org.calculator.enums.Position;
 
+
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.Period;
 import java.util.*;
-import java.util.function.Predicate;
+
+
+import static sergey_white.org.calculator.util.CalculatorServiceUtil.CONDITIONS_FOR_REFUSAL;
 
 @Service
 @RequiredArgsConstructor
@@ -36,10 +40,7 @@ public class CalculatorService {
     private final List<CalculateLoanOffer> offers;
 
     public List<LoanOfferDto> getLoanOffers(LoanStatementRequestDto input) {
-        if (validatorService.validate(input)) {
-            log.warn("Validation failed for LoanStatementRequestDto: {}", input);
-            return Collections.emptyList();
-        }
+        validatorService.validate(input);
         log.info("Calculating loan offers for LoanStatementRequestDto: {}", input);
         return offers.stream()
                 .map(offer -> offer.calculate(input))
@@ -48,27 +49,20 @@ public class CalculatorService {
     }
 
     public CreditDto calculateCredit(ScoringDataDto input) {
-        if (validatorService.validate(input)) {
-            log.warn("Validation failed for ScoringDataDto: {}", input);
-            return null;
-        }
+        validatorService.validate(input);
+        log.info("Check for refusal credit : {}", input);
+        checkUserForRefusal(input);
+
         log.info("Calculating credit for ScoringDataDto: {}", input);
         CreditDto creditDto = new CreditDto();
-        for (Predicate<ScoringDataDto> condition : conditionsForRefusal) {
-            if (condition.test(input)) {
-                log.warn("Refusal condition met for ScoringDataDto: {}", input);
-                return null;
-            }
-            creditDto.setAmount(calculateAmount(input));
-            creditDto.setTerm(input.getTerm());
-            creditDto.setMonthlyPayment(calculateMonthlyPayment(input));
-            creditDto.setRate(calculateRate(input));
-            creditDto.setPsk(calculatePSK(input));
-            creditDto.setIsInsuranceEnabled(input.getIsInsuranceEnabled());
-            creditDto.setIsSalaryClient(input.getIsSalaryClient());
-            creditDto.setPaymentSchedule(calculatePaymentSchedule(input));
-        }
-
+        creditDto.setAmount(calculateAmount(input));
+        creditDto.setTerm(input.getTerm());
+        creditDto.setMonthlyPayment(calculateMonthlyPayment(input));
+        creditDto.setRate(calculateRate(input));
+        creditDto.setPsk(calculatePSK(input));
+        creditDto.setIsInsuranceEnabled(input.getIsInsuranceEnabled());
+        creditDto.setIsSalaryClient(input.getIsSalaryClient());
+        creditDto.setPaymentSchedule(calculatePaymentSchedule(input));
         log.info("Credit calculation completed for ScoringDataDto: {}", input);
         return creditDto;
     }
@@ -160,31 +154,9 @@ public class CalculatorService {
         return paymentSchedule;
     }
 
-    private final ArrayList<Predicate<ScoringDataDto>> conditionsForRefusal = new ArrayList<>(Arrays.asList(
-            user -> {
-                log.info("Checking employment status for ScoringDataDto: {}", user);
-                return user.getEmployment().getEmploymentStatus() == EmploymentStatus.UNEMPLOYED;
-            },
-            user -> {
-                log.info("Checking amount for ScoringDataDto: {}", user);
-                return user.getAmount().compareTo(user.getEmployment().getSalary().multiply(new BigDecimal("24"))) > 0;
-            },
-            user -> {
-                int age = Period.between(user.getBirthdate(), LocalDate.now()).getYears();
-                log.info("Checking age for ScoringDataDto: {}", user);
-                return age < 20 || age > 65;
-            },
-            user -> {
-                log.info("Checking gender for ScoringDataDto: {}", user);
-                return user.getGender() == Gender.NON_BINARY;
-            },
-            user -> {
-                log.info("Checking total work experience for ScoringDataDto: {}", user);
-                return user.getEmployment().getWorkExperienceTotal() < 18;
-            },
-            user -> {
-                log.info("Checking current work experience for ScoringDataDto: {}", user);
-                return user.getEmployment().getWorkExperienceCurrent() < 3;
-            }
-    ));
+    private void checkUserForRefusal(ScoringDataDto input) {
+        CONDITIONS_FOR_REFUSAL
+                .forEach(condition -> condition.test(input));
+    }
 }
+
